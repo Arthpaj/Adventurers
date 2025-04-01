@@ -1,0 +1,18 @@
+import { Player } from "./player";
+enum GameStatus {
+    ONLINE = "ONLINE",
+    OFFLINE = "OFFLINE",
+}
+
+export class Game {
+    id: string;
+    name: string;
+    password: string | null;
+    maxPlayers: number;
+    currentPlayers: number;
+    status: GameStatus;
+    host: Player;
+    players: Player[];
+    map: Map;
+}
+
