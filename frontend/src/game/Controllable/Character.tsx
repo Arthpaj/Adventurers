@@ -1,46 +1,35 @@
 import Phaser from "phaser";
-import Map from "../scenes/Map";
+import GameScene from "../scenes/GameScene"; // Import du GameScene
 
 export default class Character extends Phaser.Physics.Arcade.Sprite {
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private keys!: { [key: string]: Phaser.Input.Keyboard.Key };
     private lastDirection: "down" | "left" | "right" | "up" = "down";
-    private map: Map;
+    private map; // La map est récupérée directement depuis la scène
 
-    private moving = false; // ✅ Prevents movement mid-step
-    private tileSize = 32; // ✅ Ensure movement follows tile size
+    private moving = false; // ✅ Empêche le mouvement en cours d'exécution
+    private tileSize = 32; // ✅ Assure un mouvement en pas de 32px
 
-    constructor(
-        scene: Phaser.Scene,
-        map: Map,
-        x: number,
-        y: number,
-        texture: string
-    ) {
+    constructor(scene: GameScene, x: number, y: number, texture: string) {
         super(scene, x, y, texture);
 
-        this.map = map;
+        this.map = scene.getMap(); // On récupère directement la carte depuis la scène
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
         this.setSize(40, 42);
-        this.setOffset(12, 20); // 🔹 Ajuste l’offset selon ton sprite
+        this.setOffset(12, 20);
         this.setScale(0.75);
 
-        // ✅ Taille de la tile (change si nécessaire)
-        const tileSize = 32;
-
-        // ✅ Centrage horizontal + Alignement vertical bas
-        const tileX = Math.round(x / tileSize) * tileSize + tileSize / 2;
+        const tileX =
+            Math.round(x / this.tileSize) * this.tileSize + this.tileSize / 2;
         const tileY =
-            Math.round(y / tileSize) * tileSize +
-            tileSize -
+            Math.round(y / this.tileSize) * this.tileSize +
+            this.tileSize -
             (this.height * 0.75) / 2;
-
         this.setPosition(tileX, tileY);
 
-        // Initialisation des touches
         if (scene.input.keyboard) {
             this.cursors = scene.input.keyboard.createCursorKeys();
             this.keys = {
@@ -84,49 +73,48 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
     }
 
     private handleMovement() {
-        if (this.moving) return; // ✅ Prevent new movement until current is done
+        if (this.moving) return; // ✅ Empêche de bouger en plein déplacement
 
         let targetX = this.x;
         let targetY = this.y;
 
         if (this.cursors.left?.isDown || this.keys.Q.isDown) {
             const tile = this.map.getTileAt(this.x - this.tileSize, this.y);
-            this.lastDirection = "left"; // Change direction even if blocked
+            this.lastDirection = "left";
             this.anims.play("walk-left", true);
 
             if (!tile?.blocking) {
-                targetX -= this.tileSize; // Move if not blocked
+                targetX -= this.tileSize;
             }
         } else if (this.cursors.right?.isDown || this.keys.D.isDown) {
             const tile = this.map.getTileAt(this.x + this.tileSize, this.y);
-            this.lastDirection = "right"; // Change direction even if blocked
+            this.lastDirection = "right";
             this.anims.play("walk-right", true);
 
             if (!tile?.blocking) {
-                targetX += this.tileSize; // Move if not blocked
+                targetX += this.tileSize;
             }
         } else if (this.cursors.up?.isDown || this.keys.Z.isDown) {
             const tile = this.map.getTileAt(this.x, this.y - this.tileSize);
-            this.lastDirection = "up"; // Change direction even if blocked
+            this.lastDirection = "up";
             this.anims.play("walk-up", true);
 
             if (!tile?.blocking) {
-                targetY -= this.tileSize; // Move if not blocked
+                targetY -= this.tileSize;
             }
         } else if (this.cursors.down?.isDown || this.keys.S.isDown) {
             const tile = this.map.getTileAt(this.x, this.y + this.tileSize);
-            this.lastDirection = "down"; // Change direction even if blocked
+            this.lastDirection = "down";
             this.anims.play("walk-down", true);
 
             if (!tile?.blocking) {
-                targetY += this.tileSize; // Move if not blocked
+                targetY += this.tileSize;
             }
         } else {
             this.anims.play(`idle-${this.lastDirection}`);
             return;
         }
 
-        // Si un mouvement est possible, commence l'animation de déplacement
         this.moving = true;
         this.scene.tweens.add({
             targets: this,
@@ -135,7 +123,7 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
             duration: 200,
             onComplete: () => {
                 this.moving = false;
-                console.log(this.x, this.y);
+                //console.log(this.x, this.y);
             },
         });
     }

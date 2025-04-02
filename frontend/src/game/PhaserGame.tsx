@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import Phaser from "phaser";
-import Map from "./scenes/Map";
+import Map from "./scenes/GameScene";
+import StartScene from "./scenes/StartScene";
 
 const PhaserGame = () => {
     useEffect(() => {
@@ -9,7 +10,7 @@ const PhaserGame = () => {
             type: Phaser.AUTO,
             width: innerWidth,
             height: innerHeight,
-            scene: Map,
+            scene: [StartScene, Map],
             parent: "phaser-container",
             physics: {
                 default: "arcade",
