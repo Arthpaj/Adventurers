@@ -1,4 +1,4 @@
-import { CollectibleResource } from "../core/collectible";
+import { CollectibleResource } from "../../core/collectible";
 
 const OreTile: Map<string, number> = new Map([
     ["Iron", 77],

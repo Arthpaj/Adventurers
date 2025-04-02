@@ -1,4 +1,4 @@
-import { CollectibleResource } from "../core/collectible";
+import { CollectibleResource } from "../../core/collectible";
 
 const PlantTile: Map<string, number> = new Map([
     ["Yucca", 77],
