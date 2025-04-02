@@ -4,6 +4,7 @@ import { Tile } from "../../object/tile";
 
 class Map extends Phaser.Scene {
     private player!: Character;
+    private tileSize = 32;
     private tiles: Tile[] = [];
 
     constructor() {
@@ -68,7 +69,7 @@ class Map extends Phaser.Scene {
         this.scale.on("resize", this.handleResize.bind(this));
         this.resizeViewPort();
 
-        this.player = new Character(this, 200, 150, "player");
+        this.player = new Character(this, this, 752, 1576, "player");
 
         // 📝 Dessiner la grille de débogage
         this.drawDebugGrid(map);
@@ -110,7 +111,7 @@ class Map extends Phaser.Scene {
             8, 17, 26, 35, 34, 33, 41, 42, 43, 44, 50, 51, 52, 53, 54, 55, 56,
             57, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 71, 72, 73, 74, 75,
             76, 77, 78, 79, 80,
-        ].includes(id); // Tu peux étendre cette logique avec les IDs qui doivent être bloquants
+        ].includes(id - 1); // Tu peux étendre cette logique avec les IDs qui doivent être bloquants
     }
 
     resizeViewPort() {
@@ -173,8 +174,17 @@ class Map extends Phaser.Scene {
     }
 
     // ✅ Fonction pour obtenir la tuile à une position donnée
-    getTileAt(x: number, y: number): Tile | undefined {
-        return this.tiles.find((tile) => tile.x === x && tile.y === y);
+    getTileAt(x: number, y: number): Tile {
+        const tileX = Math.floor(x / this.tileSize);
+        const tileY = Math.floor(y / this.tileSize);
+        return (
+            this.tiles.find(
+                (tile) =>
+                    tile.x === tileX * this.tileSize &&
+                    tile.y === tileY * this.tileSize
+            ) ||
+            new Tile(-1, tileX * this.tileSize, tileY * this.tileSize, true)
+        ); // Si la tuile n'existe pas, on considère qu'elle est bloquante
     }
 
     update() {

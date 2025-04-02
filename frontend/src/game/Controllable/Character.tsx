@@ -1,15 +1,25 @@
 import Phaser from "phaser";
+import Map from "../scenes/Map";
 
 export default class Character extends Phaser.Physics.Arcade.Sprite {
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private keys!: { [key: string]: Phaser.Input.Keyboard.Key };
     private lastDirection: "down" | "left" | "right" | "up" = "down";
+    private map: Map;
 
     private moving = false; // ✅ Prevents movement mid-step
     private tileSize = 32; // ✅ Ensure movement follows tile size
 
-    constructor(scene: Phaser.Scene, x: number, y: number, texture: string) {
+    constructor(
+        scene: Phaser.Scene,
+        map: Map,
+        x: number,
+        y: number,
+        texture: string
+    ) {
         super(scene, x, y, texture);
+
+        this.map = map;
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
@@ -80,36 +90,52 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
         let targetY = this.y;
 
         if (this.cursors.left?.isDown || this.keys.Q.isDown) {
-            targetX -= this.tileSize;
-            this.lastDirection = "left";
+            const tile = this.map.getTileAt(this.x - this.tileSize, this.y);
+            this.lastDirection = "left"; // Change direction even if blocked
             this.anims.play("walk-left", true);
+
+            if (!tile?.blocking) {
+                targetX -= this.tileSize; // Move if not blocked
+            }
         } else if (this.cursors.right?.isDown || this.keys.D.isDown) {
-            targetX += this.tileSize;
-            this.lastDirection = "right";
+            const tile = this.map.getTileAt(this.x + this.tileSize, this.y);
+            this.lastDirection = "right"; // Change direction even if blocked
             this.anims.play("walk-right", true);
+
+            if (!tile?.blocking) {
+                targetX += this.tileSize; // Move if not blocked
+            }
         } else if (this.cursors.up?.isDown || this.keys.Z.isDown) {
-            targetY -= this.tileSize;
-            this.lastDirection = "up";
+            const tile = this.map.getTileAt(this.x, this.y - this.tileSize);
+            this.lastDirection = "up"; // Change direction even if blocked
             this.anims.play("walk-up", true);
+
+            if (!tile?.blocking) {
+                targetY -= this.tileSize; // Move if not blocked
+            }
         } else if (this.cursors.down?.isDown || this.keys.S.isDown) {
-            targetY += this.tileSize;
-            this.lastDirection = "down";
+            const tile = this.map.getTileAt(this.x, this.y + this.tileSize);
+            this.lastDirection = "down"; // Change direction even if blocked
             this.anims.play("walk-down", true);
+
+            if (!tile?.blocking) {
+                targetY += this.tileSize; // Move if not blocked
+            }
         } else {
             this.anims.play(`idle-${this.lastDirection}`);
             return;
         }
 
+        // Si un mouvement est possible, commence l'animation de déplacement
         this.moving = true;
-
-        // ✅ Move exactly 1 tile and ensure alignment
         this.scene.tweens.add({
             targets: this,
             x: targetX,
             y: targetY,
-            duration: 200, // Adjust speed here
+            duration: 200,
             onComplete: () => {
                 this.moving = false;
+                console.log(this.x, this.y);
             },
         });
     }
