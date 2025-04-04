@@ -5,49 +5,115 @@ export default class StartScene extends CoreScene {
         super({ key: "StartScene" });
     }
 
+    preload() {
+        this.load.image("background", "assets/background_main_menu.jpg"); // Remplace avec ton chemin d'image
+    }
+
     create() {
-        // Add welcome text and center it based on screen size
+        const centerX = this.cameras.main.centerX;
+        const centerY = this.cameras.main.centerY;
+
+        const bg = this.add.image(0, 0, "background").setOrigin(0);
+        bg.setDisplaySize(this.scale.width, this.scale.height);
+
+        // Welcome text
         this.add
-            .text(
-                this.cameras.main.centerX,
-                this.cameras.main.centerY - 100,
-                "Welcome to the Game!",
-                {
-                    fontSize: "32px",
-                    color: "#ffffff", // Text color
-                }
-            )
-            .setOrigin(0.5); // Centers the text both horizontally and vertically
+            .text(centerX, centerY - 100, "Welcome to the Game!", {
+                fontSize: "32px",
+                color: "#ffffff",
+            })
+            .setOrigin(0.5);
 
-        // Add the "Start Game" button and center it
-        const button = this.add
-            .text(
-                this.cameras.main.centerX,
-                this.cameras.main.centerY + 50,
-                "Start Game",
-                {
-                    fontSize: "24px",
-                    color: "#00ff00", // Text color
-                    backgroundColor: "#000000", // Background color
-                }
-            )
-            .setOrigin(0.5); // Centers the button horizontally and vertically
-
-        // Make the button interactive
-        button.setInteractive();
-
-        // When the button is clicked, transition to the map scene
-        button.on("pointerdown", () => {
-            this.scene.start("GameScene"); // Replace 'GameScene' with the name of your map scene
+        // Create the button text
+        const buttonText = this.add.text(0, 0, "Start Game", {
+            fontSize: "24px",
+            color: "#ffffff",
         });
 
-        // Hover effect: change color when the button is hovered
+        buttonText.setOrigin(0.5);
+
+        // Calculate background dimensions
+        const padding = 20;
+        const buttonWidth = buttonText.width + padding * 2;
+        const buttonHeight = buttonText.height + padding;
+
+        const borderColor = 0xd3d3d3;
+        const borderThickness = 2;
+
+        // Create background graphics for the button
+        const buttonBg = this.add.graphics();
+        buttonBg.lineStyle(borderThickness, borderColor, 1);
+        buttonBg.fillStyle(0xcf9a3e, 1);
+        buttonBg.strokeRoundedRect(
+            -buttonWidth / 2,
+            -buttonHeight / 2,
+            buttonWidth,
+            buttonHeight,
+            10
+        );
+        buttonBg.fillRoundedRect(
+            -buttonWidth / 2,
+            -buttonHeight / 2,
+            buttonWidth,
+            buttonHeight,
+            10
+        );
+
+        // Combine text and background into a container
+        const button = this.add.container(centerX, centerY + 50, [
+            buttonBg,
+            buttonText,
+        ]);
+
+        button.setSize(buttonWidth, buttonHeight);
+        button.setInteractive({ useHandCursor: true });
+
+        // Click to start game
+        button.on("pointerdown", () => {
+            this.scene.start("GameScene");
+        });
+
+        // Hover effects
         button.on("pointerover", () => {
-            button.setStyle({ color: "#ff0000" }); // Change color when hovered
+            buttonBg.clear();
+            buttonBg.lineStyle(borderThickness, borderColor, 1); // Restore border
+            buttonBg.fillStyle(0xb8822c, 1); // Darker background
+            buttonBg.strokeRoundedRect(
+                -buttonWidth / 2,
+                -buttonHeight / 2,
+                buttonWidth,
+                buttonHeight,
+                10
+            );
+            buttonBg.fillRoundedRect(
+                -buttonWidth / 2,
+                -buttonHeight / 2,
+                buttonWidth,
+                buttonHeight,
+                10
+            );
+            buttonText.setColor("#ffffff");
         });
 
         button.on("pointerout", () => {
-            button.setStyle({ color: "#00ff00" }); // Reset color when not hovered
+            buttonBg.clear();
+            buttonBg.lineStyle(borderThickness, borderColor, 1); // Restore border
+            buttonBg.fillStyle(0xcf9a3e, 1); // Original background
+            buttonBg.strokeRoundedRect(
+                -buttonWidth / 2,
+                -buttonHeight / 2,
+                buttonWidth,
+                buttonHeight,
+                10
+            );
+            buttonBg.fillRoundedRect(
+                -buttonWidth / 2,
+                -buttonHeight / 2,
+                buttonWidth,
+                buttonHeight,
+                10
+            );
+            buttonText.setColor("#ffffff");
         });
     }
 
