@@ -50,20 +50,32 @@ export class CoreScene extends Phaser.Scene {
         });
     }
 
-    createButton(
-        x: number,
-        y: number,
-        text: string,
-        color: string,
-        onClick: () => void
-    ): Phaser.GameObjects.Container {
+    createButton({
+        x = 0,
+        y = 0,
+        text,
+        color = "#000000",
+        onClick,
+        fontSize = "20px",
+        textColor = "#FFFFFF",
+        padding = { left: 15, right: 15, top: 10, bottom: 10 },
+    }: {
+        x?: number;
+        y?: number;
+        text: string;
+        color?: string;
+        onClick: () => void;
+        fontSize?: string;
+        textColor?: string;
+        padding?: { left: number; right: number; top: number; bottom: number };
+    }): Phaser.GameObjects.Container {
         // Créer le texte du bouton
         const buttonText = this.add
             .text(0, 0, text, {
-                font: "20px Arial",
-                color: "#FFFFFF",
+                font: fontSize + " Arial",
+                color: textColor,
                 backgroundColor: color,
-                padding: { left: 15, right: 15, top: 10, bottom: 10 },
+                padding: padding,
             })
             .setOrigin(0.5);
 
@@ -71,10 +83,10 @@ export class CoreScene extends Phaser.Scene {
         const button = this.add.container(x, y, [buttonText]);
 
         // Ajuster la taille du conteneur pour qu'il s'adapte au texte
-        const padding = 20; // Ajuste si nécessaire
+        const btnpadding = 20; // Ajuste si nécessaire
         button.setSize(
-            buttonText.width + padding * 2,
-            buttonText.height + padding
+            buttonText.width + btnpadding * 2,
+            buttonText.height + btnpadding
         );
 
         // Création de la hitbox du bouton (en utilisant la position du conteneur du bouton)
@@ -110,47 +122,64 @@ export class CoreScene extends Phaser.Scene {
         return button;
     }
 
-    createContainer(
-        title: string,
-        titleColor: string = "#FFFFFF",
-        bgColor: number,
-        x: number = 0,
-        y: number = 0,
-        height: number = 300,
-        width: number = 200,
-        borderColor: number
-    ) {
-        const newContainer = this.add.container(
+    createContainer({
+        title,
+        bgColor = 0xffffff,
+        titleColor = "#FFFFFF",
+        x = 0,
+        y = 0,
+        height = 300,
+        width = 200,
+        borderColor = 0xff0000,
+    }: {
+        title: string;
+        bgColor?: number;
+        titleColor?: string;
+        x?: number;
+        y?: number;
+        height?: number;
+        width?: number;
+        borderColor?: number;
+    }): Phaser.GameObjects.Container {
+        const container = this.add.container(
             this.scale.width / 2,
             this.scale.height / 2
         );
-        newContainer.setSize(300, 200);
-        newContainer.setScrollFactor(0);
+        container.setScrollFactor(0);
 
-        // 🔲 Création du fond du pop-up
-        const background = this.add.graphics();
-        background.fillStyle(bgColor, 0.8); // Fond noir semi-transparent
-        background.fillRoundedRect(x, y, height, width); // Fond arrondi
-
-        // 🔴 Ajout d'un contour rouge
-        if (borderColor) {
-            background.lineStyle(4, 0xff0000, 1);
-            background.strokeRoundedRect(x, y, height, width);
-        }
-
-        //background.setDepth(-1); // Met le fond derrière tout
-
-        // 📝 Texte principal du pop-up
-        const popupText = this.add
-            .text(0, -50, title, {
+        // Création du texte pour mesure
+        const titleText = this.add
+            .text(0, 0, title, {
                 font: "24px Arial",
                 color: titleColor,
             })
             .setOrigin(0.5);
 
-        newContainer.add([background, popupText]);
-    }
+        // Largeur/hauteur minimale
+        const minWidth = titleText.width + 60; // padding horizontal
+        const minHeight = titleText.height + 100; // padding vertical + place pour boutons
 
-    CreatePopUp() {}
+        const finalWidth = Math.max(width, minWidth);
+        const finalHeight = Math.max(height, minHeight);
+
+        // Création du fond
+        const background = this.add.graphics();
+        background.fillStyle(bgColor, 0.8);
+        background.fillRoundedRect(x, y, finalWidth, finalHeight, 10);
+
+        if (borderColor) {
+            background.lineStyle(4, borderColor, 1);
+            background.strokeRoundedRect(x, y, finalWidth, finalHeight, 10);
+        }
+
+        // Ajustement du texte
+        // Ajustement du texte dans le container
+        titleText.setPosition(0, -finalHeight / 2 + 30); // centré horizontalement (0), et un peu sous le haut
+
+        container.setSize(finalWidth, finalHeight);
+        container.add([background, titleText]);
+
+        return container;
+    }
 }
 

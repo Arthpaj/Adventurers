@@ -70,55 +70,30 @@ class GameScene extends CoreScene {
     }
 
     createQuitPopUp() {
-        console.log("Pop-up affiché !");
+        this.popUp = this.createContainer({
+            title: "Voulez-vous quitter ?",
+            bgColor: 0x000000,
+            borderColor: 0xff0000,
+            x: -150,
+            y: -100,
+            width: 300,
+            height: 200,
+        });
 
-        // Crée un conteneur pour le pop-up
-        this.popUp = this.add.container(
-            this.scale.width / 2,
-            this.scale.height / 2
-        );
-        this.popUp.setSize(300, 200);
-        this.popUp.setVisible(false); // 🌟 Visible dès le début
+        this.popUp.setVisible(false);
+        this.popUp.setInteractive();
+        this.popUp.disableInteractive();
         this.popUp.setScrollFactor(0);
 
-        // 🔲 Création du fond du pop-up
-        const background = this.add.graphics();
-        background.fillStyle(0x000000, 0.8); // Fond noir semi-transparent
-        background.fillRoundedRect(-150, -100, 300, 200, 10); // Fond arrondi
-
-        // 🔴 Ajout d'un contour rouge
-        background.lineStyle(4, 0xff0000, 1);
-        background.strokeRoundedRect(-150, -100, 300, 200, 10);
-
-        background.setDepth(-1); // Met le fond derrière tout
-
-        // 📝 Texte principal du pop-up
-        const popupText = this.add
-            .text(0, -50, "Voulez-vous quitter ?", {
-                font: "24px Arial",
-                color: "#FFFFFF",
-            })
-            .setOrigin(0.5);
-
-        // 🔘 Création des boutons
-        const buttonQuit = this.createButton(0, 30, "Quitter", "#ff0000", () =>
-            this.quitGame()
-        );
-        this.popUp.setInteractive(); // Nécessaire pour que le container route les events
-        this.popUp.disableInteractive();
-        // Ajouter tous les éléments au conteneur
-        this.popUp.add([background, popupText, buttonQuit]);
-
-        buttonQuit.on("pointerover", () => {
-            console.log("Souris survole le pop-up");
+        const buttonQuit = this.createButton({
+            x: 0,
+            y: 30,
+            text: "Quitter",
+            color: "#ff0000",
+            onClick: () => this.quitGame(),
         });
 
-        buttonQuit.on("pointerdown", () => {
-            console.log("Button clicked!");
-        });
-
-        console.log(this.isContainerInteractive(this.popUp)); // Affiche true si le conteneur popUp est interactif, sinon false
-        console.log(this.isContainerInteractive(buttonQuit));
+        this.popUp.add(buttonQuit);
     }
 
     showQuitPopUp() {

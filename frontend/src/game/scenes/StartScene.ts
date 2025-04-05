@@ -29,15 +29,15 @@ export default class StartScene extends CoreScene {
             .setOrigin(0.5);
 
         // Créez le bouton
-        this.startButton = this.createButton(
-            centerX,
-            centerY,
-            "Start Game",
-            "#cf9a3e",
-            () => {
+        this.startButton = this.createButton({
+            x: centerX,
+            y: centerY,
+            text: "Start Game",
+            color: "#cf9a3e",
+            onClick: () => {
                 this.scene.start("GameScene");
-            }
-        );
+            },
+        });
 
         // Ajuster la taille des éléments au début
         //this.resizeElements();
