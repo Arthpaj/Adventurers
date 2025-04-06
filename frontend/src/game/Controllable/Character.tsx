@@ -1,5 +1,4 @@
-import Phaser from "phaser";
-import GameScene from "../scenes/GameScene"; // Import du GameScene
+import GameScene from "../scenes/GameScene";
 
 export default class Character extends Phaser.Physics.Arcade.Sprite {
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -9,6 +8,10 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
 
     private moving = false; // ✅ Empêche le mouvement en cours d'exécution
     private tileSize = 32; // ✅ Assure un mouvement en pas de 32px
+    public hasMoved = false; // ✅ Flag to track movement
+
+    private prevX: number;
+    private prevY: number;
 
     constructor(scene: GameScene, x: number, y: number, texture: string) {
         super(scene, x, y, texture);
@@ -123,7 +126,11 @@ export default class Character extends Phaser.Physics.Arcade.Sprite {
             duration: 200,
             onComplete: () => {
                 this.moving = false;
-                //console.log(this.x, this.y);
+                if (this.x !== this.prevX || this.y !== this.prevY) {
+                    this.hasMoved = true; // Indicate movement
+                    this.prevX = this.x;
+                    this.prevY = this.y;
+                }
             },
         });
     }

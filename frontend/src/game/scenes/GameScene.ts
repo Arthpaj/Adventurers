@@ -1,6 +1,13 @@
 import Character from "../Controllable/Character";
 import Map from "../../object/map"; // Import the Map class
 import { CoreScene } from "../../core/coreScene";
+import io from "socket.io-client"; // Import the correct socket type
+
+interface MovementData {
+    x: number;
+    y: number;
+    id: string;
+}
 
 class GameScene extends CoreScene {
     private player!: Character;
@@ -8,6 +15,9 @@ class GameScene extends CoreScene {
     private popUp!: Phaser.GameObjects.Container;
     private isPopUpVisible: boolean = false; // Suivi de l'état du pop-up
     private mapLayer!: Phaser.Tilemaps.TilemapLayer | null;
+    private socket!: ReturnType<typeof io>; // Declare socket as the Socket type
+    private otherPlayers: { id: string; sprite: Phaser.GameObjects.Sprite }[] =
+        [];
 
     constructor() {
         super({ key: "GameScene" });
@@ -24,6 +34,25 @@ class GameScene extends CoreScene {
     }
 
     create() {
+        // Initialize WebSocket connection
+        this.socket = io("http://localhost:3002");
+
+        // Listen for other players' movements
+        this.socket.on("playerMove", (data: MovementData) => {
+            if (data.id !== this.socket.id) {
+                console.log(
+                    `Player ${data.id} moved to (${data.x}, ${data.y})`
+                );
+                this.updateOtherPlayerPosition(data);
+            }
+        });
+
+        // Handle player movement
+        this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+            const playerData = { x: pointer.x, y: pointer.y };
+            this.socket.emit("playerMoved", playerData); // Emit movement to the server
+        });
+
         // Charge la carte et le tileset
         const map = this.make.tilemap({ key: "map" });
         const tileset = map.addTilesetImage("desert_biome", "desert_biome");
@@ -43,8 +72,8 @@ class GameScene extends CoreScene {
         this.cameras.main.setBounds(
             0,
             0,
-            map.widthInPixels, // Largeur réelle de la carte
-            map.heightInPixels // Hauteur réelle de la carte
+            map.widthInPixels,
+            map.heightInPixels
         );
 
         // Crée le joueur
@@ -128,22 +157,33 @@ class GameScene extends CoreScene {
             this.map.getMapDisplayWidth(),
             this.map.getMapDisplayHeight()
         );
-        //this.centerCamera();
     }
 
-    // centerCamera() {
-    //     if (this.player) {
-    //         this.cameras.main.startFollow(this.player, true);
-    //     } else {
-    //         this.cameras.main.centerOn(
-    //             this.map.getMapDisplayWidth() / 2,
-    //             this.map.getMapDisplayHeight() / 2
-    //         );
-    //     }
-    // }
+    updateOtherPlayerPosition(data: MovementData) {
+        // Check if the other player is already added to the game
+        const existingPlayer = this.otherPlayers.find(
+            (player) => player.id === data.id
+        );
+
+        if (!existingPlayer) {
+            // If the player doesn't exist, create a new player sprite
+            const newPlayer = this.add.sprite(data.x, data.y, "player");
+            this.otherPlayers.push({ id: data.id, sprite: newPlayer });
+        } else {
+            // Update the existing player's position
+            existingPlayer.sprite.setPosition(data.x, data.y);
+        }
+    }
 
     update() {
         this.player.update();
+
+        // If the player's position has changed, emit the movement data
+        if (this.player.hasMoved) {
+            const playerData = { x: this.player.x, y: this.player.y };
+            this.socket.emit("playerMoved", playerData);
+            this.player.hasMoved = false; // Reset the movement flag
+        }
     }
 
     getMap(): Map {
