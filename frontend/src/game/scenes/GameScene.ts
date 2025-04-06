@@ -1,8 +1,9 @@
-import Character from "../Controllable/Character";
+import { Character } from "../../object/character";
 import Map from "../../object/map"; // Import the Map class
 import { CoreScene } from "../../core/coreScene";
+import { getSpriteData } from "../dictionary/spriteDictionary";
 
-class GameScene extends CoreScene {
+export class GameScene extends CoreScene {
     private player!: Character;
     private map!: Map;
     private popUp!: Phaser.GameObjects.Container;
@@ -14,17 +15,28 @@ class GameScene extends CoreScene {
     }
 
     preload() {
+        // Crée le joueur
+        const spriteKey2 = "maitre_pingou"; // Clé du sprite par défaut
+        const data2 = getSpriteData(spriteKey2);
+        this.load.spritesheet(spriteKey2, data2.path, {
+            frameWidth: data2.frameWidth,
+            frameHeight: data2.frameHeight,
+        });
+        const spriteKey = "knight_gray"; // Clé du sprite par défaut
+        const data = getSpriteData(spriteKey);
+        this.load.spritesheet(spriteKey, data.path, {
+            frameWidth: data.frameWidth,
+            frameHeight: data.frameHeight,
+        });
+
         // Charge la carte et les assets
         this.load.tilemapTiledJSON("map", "assets/desert.json");
         this.load.image("desert_biome", "assets/desert_biome.png");
-        this.load.spritesheet("player", "assets/character/knight_bronze.png", {
-            frameWidth: 64,
-            frameHeight: 64,
-        });
     }
 
+    // Dans la méthode create de GameScene :
     create() {
-        // Charge la carte et le tileset
+        // Crée la carte et charge les tilesets
         const map = this.make.tilemap({ key: "map" });
         const tileset = map.addTilesetImage("desert_biome", "desert_biome");
 
@@ -33,11 +45,20 @@ class GameScene extends CoreScene {
             return;
         }
 
-        // Crée les calques
+        // Crée les calques de la carte
         this.mapLayer = map.createLayer("Ground", tileset, 0, 0);
 
         // Crée l'objet Map
         this.map = new Map(map);
+
+        this.player = new Character(
+            this,
+            "p1",
+            752,
+            1576,
+            "player",
+            "knight_gray"
+        );
 
         // 📏 Mettre à jour les limites de la caméra pour correspondre à la taille réelle de la carte
         this.cameras.main.setBounds(
@@ -46,9 +67,6 @@ class GameScene extends CoreScene {
             map.widthInPixels, // Largeur réelle de la carte
             map.heightInPixels // Hauteur réelle de la carte
         );
-
-        // Crée le joueur
-        this.player = new Character(this, 752, 1576, "player");
 
         // ✅ Assure que la caméra suit le joueur
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
@@ -67,6 +85,10 @@ class GameScene extends CoreScene {
         if (this.input.keyboard) {
             this.input.keyboard.on("keydown-ESC", () => this.showQuitPopUp());
         }
+
+        const spriteKey2 = "maitre_pingou";
+        const sprite2 = this.add.sprite(784, 1608, spriteKey2);
+        sprite2.setScale(0.75);
     }
 
     createQuitPopUp() {
