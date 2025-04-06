@@ -1,58 +1,57 @@
 import { CoreScene } from "../../core/coreScene";
 
 export default class StartScene extends CoreScene {
+    private bg!: Phaser.GameObjects.Image; // Déclarer bg pour la réutiliser plus tard
+    private startButton!: Phaser.GameObjects.Container;
+
     constructor() {
         super({ key: "StartScene" });
     }
 
+    preload() {
+        this.load.image("background", "assets/background_main_menu.jpg");
+    }
+
     create() {
-        // Add welcome text and center it based on screen size
+        const centerX = this.cameras.main.centerX;
+        const centerY = this.cameras.main.centerY;
+
+        // Créez l'image de fond
+        this.bg = this.add.image(0, 0, "background").setOrigin(0);
+        this.bg.setDisplaySize(this.scale.width, this.scale.height); // Redimensionner l'image de fond
+
+        // Texte de bienvenue
         this.add
-            .text(
-                this.cameras.main.centerX,
-                this.cameras.main.centerY - 100,
-                "Welcome to the Game!",
-                {
-                    fontSize: "32px",
-                    color: "#ffffff", // Text color
-                }
-            )
-            .setOrigin(0.5); // Centers the text both horizontally and vertically
+            .text(centerX, centerY - 100, "Welcome to the Game!", {
+                fontSize: "32px",
+                color: "#ffffff",
+            })
+            .setOrigin(0.5);
 
-        // Add the "Start Game" button and center it
-        const button = this.add
-            .text(
-                this.cameras.main.centerX,
-                this.cameras.main.centerY + 50,
-                "Start Game",
-                {
-                    fontSize: "24px",
-                    color: "#00ff00", // Text color
-                    backgroundColor: "#000000", // Background color
-                }
-            )
-            .setOrigin(0.5); // Centers the button horizontally and vertically
-
-        // Make the button interactive
-        button.setInteractive();
-
-        // When the button is clicked, transition to the map scene
-        button.on("pointerdown", () => {
-            this.scene.start("GameScene"); // Replace 'GameScene' with the name of your map scene
+        // Créez le bouton
+        this.startButton = this.createButton({
+            x: centerX,
+            y: centerY,
+            text: "Start Game",
+            color: "#cf9a3e",
+            onClick: () => {
+                this.scene.start("GameScene");
+            },
         });
 
-        // Hover effect: change color when the button is hovered
-        button.on("pointerover", () => {
-            button.setStyle({ color: "#ff0000" }); // Change color when hovered
-        });
+        // Ajuster la taille des éléments au début
+        //this.resizeElements();
 
-        button.on("pointerout", () => {
-            button.setStyle({ color: "#00ff00" }); // Reset color when not hovered
-        });
+        // Écouter l'événement de redimensionnement de la fenêtre
+        this.scale.on("resize", this.handleResize.bind(this));
     }
 
     handleResize() {
+        // Appeler resizeViewPort pour ajuster la scène
         this.resizeViewPort(this.scale.width, this.scale.height);
+
+        // Mettre à jour la taille et la position des éléments
+        //this.resizeElements();
     }
 }
 

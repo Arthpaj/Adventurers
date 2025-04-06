@@ -5,6 +5,9 @@ import { CoreScene } from "../../core/coreScene";
 class GameScene extends CoreScene {
     private player!: Character;
     private map!: Map;
+    private popUp!: Phaser.GameObjects.Container;
+    private isPopUpVisible: boolean = false; // Suivi de l'état du pop-up
+    private mapLayer!: Phaser.Tilemaps.TilemapLayer | null;
 
     constructor() {
         super({ key: "GameScene" });
@@ -31,13 +34,7 @@ class GameScene extends CoreScene {
         }
 
         // Crée les calques
-        const layers = ["Ground-1", "Ground", "Ground1", "Ground2"];
-        layers.forEach((layerName) => {
-            const layer = map.createLayer(layerName, tileset, 0, 0);
-            if (!layer) {
-                console.error(`Le calque '${layerName}' est introuvable.`);
-            }
-        });
+        this.mapLayer = map.createLayer("Ground", tileset, 0, 0);
 
         // Crée l'objet Map
         this.map = new Map(map);
@@ -63,6 +60,67 @@ class GameScene extends CoreScene {
             this.map.getMapDisplayWidth(),
             this.map.getMapDisplayHeight()
         );
+
+        // Créer le pop-up de quitter
+        this.createQuitPopUp();
+        // Gérer l'appui sur la touche Échap
+        if (this.input.keyboard) {
+            this.input.keyboard.on("keydown-ESC", () => this.showQuitPopUp());
+        }
+    }
+
+    createQuitPopUp() {
+        this.popUp = this.createContainer({
+            title: "Voulez-vous quitter ?",
+            bgColor: 0x000000,
+            borderColor: 0xff0000,
+            x: -150,
+            y: -100,
+            width: 300,
+            height: 200,
+        });
+
+        this.popUp.setVisible(false);
+        this.popUp.setInteractive();
+        this.popUp.disableInteractive();
+        this.popUp.setScrollFactor(0);
+
+        const buttonQuit = this.createButton({
+            x: 0,
+            y: 30,
+            text: "Quitter",
+            color: "#ff0000",
+            onClick: () => this.quitGame(),
+        });
+
+        this.popUp.add(buttonQuit);
+    }
+
+    showQuitPopUp() {
+        // Basculer l'état de visibilité du pop-up
+        if (this.isPopUpVisible) {
+            this.popUp.setVisible(false); // Masquer le pop-up// Rétablir l'opacité de la scène
+            if (this.mapLayer) {
+                this.mapLayer.setAlpha(1); // Rétablir l'alpha du calque de la carte
+            }
+            this.isPopUpVisible = false;
+        } else {
+            this.popUp.setVisible(true); // Afficher le pop-up
+            if (this.mapLayer) {
+                this.mapLayer.setAlpha(0.3); // Appliquer l'alpha réduit sur la carte
+            }
+            this.isPopUpVisible = true;
+        }
+    }
+
+    isContainerInteractive(container: Phaser.GameObjects.Container): boolean {
+        // Vérifier si la propriété 'input' est définie
+        return container.input != null;
+    }
+
+    quitGame() {
+        // Quitter la scène et aller à StartScene
+        this.scene.start("StartScene");
     }
 
     handleResize() {
@@ -70,19 +128,19 @@ class GameScene extends CoreScene {
             this.map.getMapDisplayWidth(),
             this.map.getMapDisplayHeight()
         );
-        this.centerCamera();
+        //this.centerCamera();
     }
 
-    centerCamera() {
-        if (this.player) {
-            this.cameras.main.startFollow(this.player, true);
-        } else {
-            this.cameras.main.centerOn(
-                this.map.getMapDisplayWidth() / 2,
-                this.map.getMapDisplayHeight() / 2
-            );
-        }
-    }
+    // centerCamera() {
+    //     if (this.player) {
+    //         this.cameras.main.startFollow(this.player, true);
+    //     } else {
+    //         this.cameras.main.centerOn(
+    //             this.map.getMapDisplayWidth() / 2,
+    //             this.map.getMapDisplayHeight() / 2
+    //         );
+    //     }
+    // }
 
     update() {
         this.player.update();
